@@ -200,8 +200,9 @@ class CowLog(QMainWindow):
         for i in range(n):
             self.CodeButtons.append(QPushButton("(&" + shortcutKeys[i] + ")" + " " *2 +  CowLogSettings.Project["behaviors"][i]['name']))
             self.CodeButtons[i].CowProperties = CowLogSettings.Project["behaviors"][i]
-            self.CodeButtons[i].clicked.connect(self.code)
             self.CodeButtons[i].setCheckable(True)
+            self.CodeButtons[i].clicked[bool].connect(self.code)
+
             self.CodeLOs[CowLogSettings.Project["behaviors"][i]["class"]-1].addWidget(self.CodeButtons[i])
 
         #Add strech after buttons
@@ -313,19 +314,23 @@ class CowLog(QMainWindow):
             self.firstModifier = True
             self.modifiedTime = 0
 
-    def code(self):
+    def code(self, pressed):
         code = self.sender().CowProperties["name"]
         bClass = self.sender().CowProperties["class"]
-
+        print pressed
         if self.dataFileName is not None:
             if CowLogSettings.Project['usemodifiers']:
                 hasmodifiers = self.sender().CowProperties["hasmodifiers"]
-                self.codeModifiers(code, bClass, hasmodifiers, self.sender())
+                self.codeModifiers(code, bClass, hasmodifiers, self.sender(), pressed)
             else:
-                self.codeNoModifiers(code, bClass, self.sender())
+                self.codeNoModifiers(code, bClass, self.sender(), pressed)
 
-    def codeNoModifiers(self, code, bClass, source):
-        time = self.Player.currentTime()
+    def codeNoModifiers(self, code, bClass, source, pressed):
+        if pressed:
+            time = 0-self.Player.currentTime()
+        else:
+            time = self.Player.currentTime()
+
         if time is None:
             return
         #Set the style of other buttons in class to normal
@@ -340,7 +345,7 @@ class CowLog(QMainWindow):
         file.close()
         self.currentCode.setText(codes)
 
-    def codeModifiers(self, code, bClass, hasmodifiers, source):
+    def codeModifiers(self, code, bClass, hasmodifiers, source, pressed):
         time = self.Player.currentTime()
         if time is None:
             return
